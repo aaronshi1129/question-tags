@@ -1,0 +1,439 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Tags</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .draggable {
+            cursor: grab;
+            user-select: none;
+        }
+        .draggable:active {
+            cursor: grabbing;
+        }
+        .droppable {
+            transition: all 0.2s ease;
+        }
+        .droppable.highlight {
+            background-color: #e0f2fe !important;
+            transform: scale(1.02);
+        }
+        .warning {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .success-animation {
+            animation: success-pulse 0.5s;
+        }
+        @keyframes success-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .shuffle-animation {
+            animation: shuffle 0.8s ease-in-out;
+        }
+        @keyframes shuffle {
+            0% { transform: translateX(0) translateY(0) rotate(0deg); }
+            25% { transform: translateX(10px) translateY(-10px) rotate(5deg); }
+            50% { transform: translateX(-5px) translateY(5px) rotate(-3deg); }
+            75% { transform: translateX(5px) translateY(-5px) rotate(2deg); }
+            100% { transform: translateX(0) translateY(0) rotate(0deg); }
+        }
+        .main-content {
+            flex: 1;
+        }
+        footer {
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-indigo-800 mb-2">Question Tags</h1>
+            <p class="text-lg text-indigo-600">Complete the sentences with the correct question tags!</p>
+        </header>
+
+        <!-- Explanation Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-indigo-700">What are Question Tags?</h2>
+                <button id="toggleExplanation" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 px-4 py-2 rounded-md transition">
+                    Show Explanation
+                </button>
+            </div>
+            
+            <div id="explanationContent" class="hidden">
+                <div class="border-l-4 border-indigo-500 pl-4 mb-4">
+                    <p class="mb-2"><strong>Question Tags</strong> are short questions added to the end of statements to ask for confirmation or agreement.</p>
+                    <p class="text-gray-600">「附加問句」是加在陳述句後面的簡短問句，用來尋求確認或同意。</p>
+                </div>
+                
+                <h3 class="font-semibold text-indigo-600 mt-4 mb-2">Basic Rules:</h3>
+                <ul class="list-disc pl-6 mb-4">
+                    <li class="mb-2">
+                        <p>If the main statement is <strong>positive</strong>, the question tag is usually <strong>negative</strong>.</p>
+                        <p class="text-gray-600">如果主要陳述句是<strong>肯定的</strong>，附加問句通常是<strong>否定的</strong>。</p>
+                        <p class="text-indigo-700 italic">Example: You like coffee, <strong>don't you?</strong></p>
+                    </li>
+                    <li class="mb-2">
+                        <p>If the main statement is <strong>negative</strong>, the question tag is usually <strong>positive</strong>.</p>
+                        <p class="text-gray-600">如果主要陳述句是<strong>否定的</strong>，附加問句通常是<strong>肯定的</strong>。</p>
+                        <p class="text-indigo-700 italic">Example: You don't like tea, <strong>do you?</strong></p>
+                    </li>
+                    <li class="mb-2">
+                        <p>The auxiliary verb in the question tag matches the verb in the main statement.</p>
+                        <p class="text-gray-600">附加問句中的助動詞要與主要陳述句中的動詞一致。</p>
+                        <p class="text-indigo-700 italic">Example: She has finished, <strong>hasn't she?</strong></p>
+                    </li>
+                    <li>
+                        <p>If there's no auxiliary verb in the main statement, use <strong>do/does/did</strong> in the question tag.</p>
+                        <p class="text-gray-600">如果主要陳述句中沒有助動詞，在附加問句中使用<strong>do/does/did</strong>。</p>
+                        <p class="text-indigo-700 italic">Example: You went there, <strong>didn't you?</strong></p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Game Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-indigo-700">Practice Game</h2>
+                <div class="flex space-x-2">
+                    <span id="scoreDisplay" class="bg-indigo-100 text-indigo-800 px-4 py-2 rounded-md">Score: 0</span>
+                    <button id="nextButton" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md transition">Next Sentence</button>
+                </div>
+            </div>
+            
+            <div id="gameContainer">
+                <div id="sentenceContainer" class="text-lg mb-6 p-4 bg-indigo-50 rounded-lg">
+                    <span id="mainSentence">You are learning English,</span>
+                    <span id="dropZone" class="droppable inline-block min-w-[100px] min-h-[36px] border-b-2 border-dashed border-indigo-400 mx-2 align-middle"></span>
+                </div>
+                
+                <div id="feedback" class="hidden mb-6 p-4 rounded-lg text-center"></div>
+                
+                <div id="optionsContainer" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <!-- Options will be generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tips Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold text-indigo-700 mb-4">Helpful Tips</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-indigo-600 mb-2">Intonation Matters</h3>
+                    <p>Rising intonation ↗️ shows uncertainty and expects an answer.</p>
+                    <p class="text-gray-600">上升語調 ↗️ 表示不確定，期待得到回答。</p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-indigo-600 mb-2">Special Cases</h3>
+                    <p>"I am" becomes "aren't I" in the question tag.</p>
+                    <p class="text-gray-600">"I am" 在附加問句中變成 "aren't I"。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-indigo-800 text-indigo-100 py-6 mt-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0">
+                <!-- Links -->
+                <div class="flex items-center space-x-4">
+                    <a href="https://www.aaronshi.cc" target="_blank" rel="noopener noreferrer" class="flex items-center hover:text-white transition duration-300">
+                        Go to AaronShi.cc
+                    </a>
+                    <span class="text-indigo-300">|</span>
+                    <a href="https://app.aaronshi.cc" target="_blank" rel="noopener noreferrer" class="flex items-center hover:text-white transition duration-300">
+                        Back to AaronShi.cc App
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Game data
+        const questionData = [
+            { 
+                sentence: "You are learning English,", 
+                correctTag: "aren't you", 
+                options: ["aren't you", "don't you", "do you", "are you"]
+            },
+            { 
+                sentence: "She doesn't like spicy food,", 
+                correctTag: "does she", 
+                options: ["does she", "doesn't she", "is she", "isn't she"]
+            },
+            { 
+                sentence: "They went to the beach yesterday,", 
+                correctTag: "didn't they", 
+                options: ["didn't they", "don't they", "did they", "haven't they"]
+            },
+            { 
+                sentence: "He has finished his homework,", 
+                correctTag: "hasn't he", 
+                options: ["hasn't he", "doesn't he", "has he", "isn't he"]
+            },
+            { 
+                sentence: "You can swim,", 
+                correctTag: "can't you", 
+                options: ["can't you", "can you", "don't you", "do you"]
+            },
+            { 
+                sentence: "Let's go to the park,", 
+                correctTag: "shall we", 
+                options: ["shall we", "will we", "don't we", "can we"]
+            },
+            { 
+                sentence: "I'm late,", 
+                correctTag: "aren't I", 
+                options: ["aren't I", "am I not", "don't I", "am I"]
+            },
+            { 
+                sentence: "There are many students in the class,", 
+                correctTag: "aren't there", 
+                options: ["aren't there", "are there", "isn't it", "is it"]
+            },
+            { 
+                sentence: "She will help us tomorrow,", 
+                correctTag: "won't she", 
+                options: ["won't she", "will she", "doesn't she", "isn't she"]
+            },
+            { 
+                sentence: "You would prefer tea,", 
+                correctTag: "wouldn't you", 
+                options: ["wouldn't you", "would you", "don't you", "won't you"]
+            }
+        ];
+
+        // Game variables
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let currentDraggingElement = null;
+        let isAnswerChecked = false;
+
+        // DOM Elements
+        const toggleExplanationBtn = document.getElementById('toggleExplanation');
+        const explanationContent = document.getElementById('explanationContent');
+        const mainSentence = document.getElementById('mainSentence');
+        const dropZone = document.getElementById('dropZone');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const nextButton = document.getElementById('nextButton');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const feedbackElement = document.getElementById('feedback');
+
+        // Toggle explanation
+        toggleExplanationBtn.addEventListener('click', () => {
+            if (explanationContent.classList.contains('hidden')) {
+                explanationContent.classList.remove('hidden');
+                toggleExplanationBtn.textContent = 'Hide Explanation';
+            } else {
+                explanationContent.classList.add('hidden');
+                toggleExplanationBtn.textContent = 'Show Explanation';
+            }
+        });
+
+        // Initialize game
+        function initGame() {
+            loadQuestion(currentQuestionIndex);
+            nextButton.addEventListener('click', handleNextQuestion);
+            setupDragAndDrop();
+        }
+
+        // Load question
+        function loadQuestion(index) {
+            const question = questionData[index];
+            mainSentence.textContent = question.sentence;
+            dropZone.innerHTML = '';
+            dropZone.classList.add('droppable');
+            isAnswerChecked = false;
+            
+            // Clear feedback
+            feedbackElement.classList.add('hidden');
+            
+            // Generate options
+            optionsContainer.innerHTML = '';
+            
+            // Shuffle options
+            const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
+            
+            shuffledOptions.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'draggable bg-indigo-200 hover:bg-indigo-300 text-indigo-800 p-3 rounded-md text-center transition cursor-grab';
+                optionElement.textContent = option;
+                optionElement.setAttribute('draggable', 'true');
+                optionElement.dataset.option = option;
+                
+                optionsContainer.appendChild(optionElement);
+            });
+        }
+
+        // Setup drag and drop
+        function setupDragAndDrop() {
+            document.addEventListener('dragstart', (e) => {
+                if (e.target.classList.contains('draggable') && !isAnswerChecked) {
+                    currentDraggingElement = e.target;
+                    e.dataTransfer.setData('text/plain', e.target.dataset.option);
+                    setTimeout(() => {
+                        e.target.classList.add('opacity-50');
+                    }, 0);
+                }
+            });
+
+            document.addEventListener('dragend', (e) => {
+                if (e.target.classList.contains('draggable')) {
+                    e.target.classList.remove('opacity-50');
+                }
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (!isAnswerChecked) {
+                    dropZone.classList.add('highlight');
+                }
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('highlight');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('highlight');
+                
+                if (isAnswerChecked) return;
+                
+                const option = e.dataTransfer.getData('text/plain');
+                
+                // Clear drop zone first
+                dropZone.innerHTML = '';
+                
+                // Create a clone of the dragged element
+                const clone = document.createElement('div');
+                clone.className = 'bg-indigo-300 text-indigo-800 p-2 rounded-md inline-block';
+                clone.textContent = option;
+                
+                dropZone.appendChild(clone);
+                
+                // Check answer
+                checkAnswer(option);
+            });
+
+            // Also allow clicking on options to select them
+            optionsContainer.addEventListener('click', (e) => {
+                const optionElement = e.target.closest('.draggable');
+                if (optionElement && !isAnswerChecked) {
+                    const option = optionElement.dataset.option;
+                    
+                    // Clear drop zone first
+                    dropZone.innerHTML = '';
+                    
+                    // Create a clone of the clicked element
+                    const clone = document.createElement('div');
+                    clone.className = 'bg-indigo-300 text-indigo-800 p-2 rounded-md inline-block';
+                    clone.textContent = option;
+                    
+                    dropZone.appendChild(clone);
+                    
+                    // Check answer
+                    checkAnswer(option);
+                }
+            });
+        }
+
+        // Check answer
+        function checkAnswer(selectedOption) {
+            const correctAnswer = questionData[currentQuestionIndex].correctTag;
+            isAnswerChecked = true;
+            
+            if (selectedOption === correctAnswer) {
+                // Correct answer
+                score++;
+                scoreDisplay.textContent = `Score: ${score}`;
+                
+                feedbackElement.textContent = "Correct! Well done!";
+                feedbackElement.className = "mb-6 p-4 rounded-lg text-center bg-green-100 text-green-800";
+                feedbackElement.classList.remove('hidden');
+                
+                dropZone.firstChild.classList.remove('bg-indigo-300');
+                dropZone.firstChild.classList.add('bg-green-300', 'success-animation');
+            } else {
+                // Incorrect answer
+                feedbackElement.innerHTML = `
+                    <p>Not quite right. The correct answer is: <strong>${correctAnswer}</strong></p>
+                `;
+                feedbackElement.className = "mb-6 p-4 rounded-lg text-center bg-red-100 text-red-800";
+                feedbackElement.classList.remove('hidden');
+                
+                dropZone.firstChild.classList.remove('bg-indigo-300');
+                dropZone.firstChild.classList.add('bg-red-300', 'warning');
+            }
+        }
+
+        // Handle next question
+        function handleNextQuestion() {
+            if (currentQuestionIndex < questionData.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion(currentQuestionIndex);
+                
+                // Add shuffle animation to options container
+                optionsContainer.classList.add('shuffle-animation');
+                setTimeout(() => {
+                    optionsContainer.classList.remove('shuffle-animation');
+                }, 800);
+            } else {
+                // Game completed
+                mainSentence.textContent = "Game completed!";
+                dropZone.innerHTML = '';
+                optionsContainer.innerHTML = '';
+                
+                feedbackElement.innerHTML = `
+                    <p>Congratulations! You've completed the game.</p>
+                    <p>Your final score: ${score}/${questionData.length}</p>
+                    <button id="restartButton" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md transition">
+                        Play Again
+                    </button>
+                `;
+                feedbackElement.className = "mb-6 p-4 rounded-lg text-center bg-indigo-100 text-indigo-800";
+                feedbackElement.classList.remove('hidden');
+                
+                nextButton.disabled = true;
+                nextButton.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                // Add restart functionality
+                document.getElementById('restartButton').addEventListener('click', () => {
+                    currentQuestionIndex = 0;
+                    score = 0;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                    nextButton.disabled = false;
+                    nextButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    loadQuestion(currentQuestionIndex);
+                });
+            }
+        }
+
+        // Initialize the game when the page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95acbd300720a9b6',t:'MTc1MTc4MDEyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
